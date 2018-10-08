@@ -1,0 +1,9 @@
+eclipse.preferences.version=1
+encoding//src/gui/ctrl_plam.py=UTF-8
+encoding//src/landmark/points_marker.py=UTF-8
+encoding//src/main.py=UTF-8
+encoding//src/utils/comm_struct.py=UTF-8
+encoding//src/utils/config_parser.py=UTF-8
+encoding//src/utils/cv_marker.py=UTF-8
+encoding//src/utils/dataio.py=UTF-8
+encoding//src/utils/log_parser.py=UTF-8
