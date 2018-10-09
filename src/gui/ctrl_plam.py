@@ -1,3 +1,7 @@
+#-*-coding:UTF-8
+'''
+author: Gary-W
+'''
 import cv2
 
 def script_path():
@@ -16,7 +20,7 @@ class CtrlPlam:
         self.x_offset = x_offset
         self.y_offset = y_offset
     
-    def updateDisplayer(self):
+    def update_displayer(self):
         if len(self.key_log) > 0:
             ss = "".join(self.key_log)
             cv2.putText(self.bg, ss, (67,62), cv2.FONT_HERSHEY_PLAIN, 2.0,(200,200,200),thickness=2)
@@ -30,7 +34,7 @@ class CtrlPlam:
             self.key_log.pop()
             self.bg[32:69,56:245,:] = 0
         if len(self.key_log) > 0:
-            self.updateDisplayer()
+            self.update_displayer()
     
     def getKey(self,x, y):
         x -= self.x_offset

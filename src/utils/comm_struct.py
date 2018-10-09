@@ -42,6 +42,16 @@ class BevPointData(PointData):
             
         return log
 
+class PoseData:
+    def __init__(self):
+        self.Xm = 0
+        self.Ym = 0
+        self.Yawr = 0
+        self.time =  0
+        
+    def __repr__(self):
+        log = "**Loc*time:%09d Xm:%f Ym:%f Yawr:%f#" % (self.time, self.Xm, self.Ym, self.Yawr)
+        return log    
 
 if __name__=="__main__":
     pass

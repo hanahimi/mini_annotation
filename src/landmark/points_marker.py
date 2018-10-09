@@ -25,6 +25,7 @@ import cv2
 import numpy as np
 import os
 from gui.ctrl_plam import CtrlPlam
+from gui.cmd_win import CmdWindow
 from utils.comm_struct import ImgData,PointData
 from utils.cv_marker import CvMarker
 from utils.dataio import get_walkfilelist
@@ -44,11 +45,18 @@ class PointsMarker:
         
     def reset_status(self):
         self.lock_flag = False
-        self.cur_img =cv2.imread(self.dataset[self.cur_img_idx].img_path)
+        self.cur_img = cv2.imread(self.dataset[self.cur_img_idx].img_path)
         self.cur_label_file = self.dataset[self.cur_img_idx].img_path[:-4]+".txt"
         self.cur_point_id = 0
         self.cur_points = []
         self.try_load_cur_labeling()
+        
+        try:
+            self.cmd_win.clear()
+            self.cmd_win.update_tab(str(self.dataset[self.cur_img_idx].img_id))
+            self.cmd_win.update_displayer()
+        except:
+            pass
         
     def init_images_dir(self, imgs_dir):
         # build image dataset (wrap an img file as ImgData)
@@ -68,8 +76,13 @@ class PointsMarker:
         self.mouse_cnt_status = 0
         self.plam = CtrlPlam(self.view_width, 0)
         
-        self.window = np.zeros((max(self.view_heigth, self.plam.h),
-                                self.view_width + self.plam.w, 3), np.uint8)
+        self.cmd_win = CmdWindow(self.view_width+20, self.plam.h+10)
+        
+        self.window = np.zeros((max(self.view_heigth, self.plam.h + self.cmd_win.h),
+                                self.view_width + max(self.plam.w, self.cmd_win.w+20), 3), np.uint8)
+        self.cmd_win.clear()
+        self.cmd_win.update_tab(str(self.dataset[self.cur_img_idx].img_id))
+        self.cmd_win.update_displayer()
         
         self.win_H = self.window.shape[0]
         self.win_W = self.window.shape[1]
@@ -88,7 +101,10 @@ class PointsMarker:
                 self.cur_points.append(new_point)
                 print("Page:%d - %d  P = (%d, %d)" % (self.cur_img_idx, new_point.id, x, y))
                 self.cur_point_id += 1
-                    
+                self.cmd_win.clear(1)
+                self.cmd_win.update_tab(msg="%d-%d %s P=(%d, %d)" % (self.cur_img_idx, new_point.id, new_point.type, x, y))
+                self.cmd_win.update_displayer()
+                
             # detect plam area
             if (self.view_width < x < self.view_width+self.plam.w) and (0 < y < self.win_H):
                 strKey =  self.plam.getKey(x, y)
@@ -97,7 +113,7 @@ class PointsMarker:
                         self.try_save_cur_labeling()
                     else:
                         self.plam.key_log.append(strKey)
-                        self.plam.updateDisplayer()
+                        self.plam.update_displayer()
                         self.type_str = "".join(self.plam.key_log)
                 else:
                     # plam set clear
@@ -163,6 +179,8 @@ class PointsMarker:
         while (1):
             self.window[:self.view_heigth, :self.view_width,:] = self.cur_img[:]
             self.window[:self.plam.h, self.view_width:self.view_width+self.plam.w,:] = self.plam.bg[:]
+            self.window[self.plam.h+10:self.plam.h+10+self.cmd_win.h, self.view_width+20:self.view_width+20+self.cmd_win.w,:] = self.cmd_win.bg[:]
+            
             cv2.imshow(self.win_title, self.window)
             key = cv2.waitKey(10) & 0xFF
             if 0 == self.keyboard_respond(key):

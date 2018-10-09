@@ -21,16 +21,37 @@ F: save current annotation
     [others]: add new charactor
 '''
 import cv2
-from utils.comm_struct import BevPointData
+from utils.comm_struct import BevPointData, PoseData
 from utils.cv_marker import CvMarker
 from utils.log_parser import get_log_table
 from landmark.points_marker import PointsMarker
+from math import cos, sin
 
 class BevPointsMarker(PointsMarker):
-    def __init__(self, imgs_dir, bev_config):
+    def __init__(self, imgs_dir, bev_config, veh_loc_file=None):
         PointsMarker.__init__(self, imgs_dir)
         self.bev_config = bev_config
+        self.load_loc_data(veh_loc_file)
+        
+    def load_loc_data(self, veh_loc_file):
+        self.loc_data = None
+        try:
+            loc_data_log = get_log_table(veh_loc_file)
+            self.loc_data = {}
+            for i in range(len(loc_data_log)):
+                new_pose = PoseData()
+                new_pose.time = loc_data_log[i].table["time"]
+                new_pose.Xm = loc_data_log[i].table["Xm"]
+                new_pose.Ym = loc_data_log[i].table["Ym"]
+                new_pose.Yawr = loc_data_log[i].table["Yawr"]
+                self.loc_data[new_pose.time] = new_pose
+            print("read pose data, save veh coordinate and world coordinate")
 
+        except:
+            self.loc_data = None
+            print("no valid pose data, only save veh coordinate")
+            
+        
     def mouse_add_point(self,event, x, y, flags,param):
         
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -42,10 +63,37 @@ class BevPointsMarker(PointsMarker):
                 new_point.type = self.type_str
                 new_point.veh_x = 1.0 * (self.bev_config["vc_img_y"] - new_point.y) * (self.bev_config["ppmmy"]*0.001)
                 new_point.veh_y = 1.0 * (new_point.x - self.bev_config["vc_img_x"]) * (self.bev_config["ppmmx"]*0.001)
-                self.cur_points.append(new_point)
-                CvMarker.draw_cross_marker(self.cur_img, x, y,str(self.cur_point_id)+":"+self.type_str+"\n (%2.1f,%2.1f)" % (new_point.veh_x, new_point.veh_y))
+                
                 print("Page:%d - %d  P = (%d, %d)" % (self.cur_img_idx, new_point.id, x, y))
+                if self.loc_data:
+                    cur_time = int(new_point.img_id)
+                    try:
+                        bev_pose = self.loc_data[cur_time]
+                        cosa = cos(bev_pose.yawr)
+                        sina = sin(bev_pose.yawr)
+                        new_point.world_x = new_point.veh_y * cosa + new_point.veh_x * sina + bev_pose.x
+                        new_point.world_Y = new_point.veh_x * cosa - new_point.veh_y * sina + bev_pose.y
+                        print("  X:%2.4f Y:%2.4f time:%09d" % (cur_time, new_point.world_x, new_point.world_y))
+                    except:
+                        print("can not fine match pose data of time:%09d" % (cur_time))
+                        
+                self.cur_points.append(new_point)
+                
+                CvMarker.draw_cross_marker(self.cur_img, x, y,str(self.cur_point_id)+":"+self.type_str+"\n (%2.1f,%2.1f)" % (new_point.veh_x, new_point.veh_y))
+
                 self.cur_point_id += 1
+                self.cmd_win.clear(1)
+                msg = "%s\n%d %s P=(%d, %d)\nVeh: X: %2.2f Y: %2.2f\n" \
+                    % (new_point.img_id, 
+                       new_point.id, new_point.type, x, y,
+                       new_point.veh_x, new_point.veh_y)
+                    
+                if new_point.world_x and new_point.world_y:
+                    msg += "Wld: X: %2.2f Y: %2.2f" % (new_point.world_x, new_point.world_y)
+
+                self.cmd_win.update_tab(msg)
+                self.cmd_win.update_displayer()
+                
                     
             # detect plam area
             if (self.view_width < x < self.view_width+self.plam.w) and (0 < y < self.win_H):
@@ -55,7 +103,7 @@ class BevPointsMarker(PointsMarker):
                         self.try_save_cur_labeling()
                     else:
                         self.plam.key_log.append(strKey)
-                        self.plam.updateDisplayer()
+                        self.plam.update_displayer()
                         self.type_str = "".join(self.plam.key_log)
                 else:
                     # plam set clear
@@ -76,13 +124,14 @@ class BevPointsMarker(PointsMarker):
                 self.cur_point_id = tmp_point_id + 1
         except:
             pass
-
-            
+    
     def mainloop(self):
         while (1):
             CvMarker.draw_cross(self.cur_img, self.bev_config["vc_img_x"], self.bev_config["vc_img_y"])
             self.window[:self.view_heigth, :self.view_width,:] = self.cur_img[:]
             self.window[:self.plam.h, self.view_width:self.view_width+self.plam.w,:] = self.plam.bg[:]
+            self.window[self.plam.h+10:self.plam.h+10+self.cmd_win.h, self.view_width+20:self.view_width+20+self.cmd_win.w,:] = self.cmd_win.bg[:]
+                
             cv2.imshow(self.win_title, self.window)
             key = cv2.waitKey(10) & 0xFF
             if 0 == self.keyboard_respond(key):
