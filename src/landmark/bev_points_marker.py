@@ -4,6 +4,8 @@ Created on 2018-8-14
 @author: mipapapa
 
 create label points on BEV dataset
+given bev info:(car center x, car center y, ppmmx, ppmmy)
+if veh_loc_file is provided, this tool will also compute the coords of label points
 
 # Key board event:
 A: load last image
