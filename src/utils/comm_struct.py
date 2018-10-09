@@ -22,6 +22,26 @@ class PointData:
         log = "**Point*Img:'%s' type:'%s' id:%d x:%d y:%d#" % (str(self.img_id), self.type, self.id, self.x, self.y)
         return log
 
+class BevPointData(PointData):
+    def __init__(self):
+        PointData.__init__(self)
+        self.veh_x = 0
+        self.veh_y = 0
+        
+        self.world_x = None
+        self.world_y = None
+    
+    def __repr__(self):
+        if self.world_x or self.world_y:
+            log = "**Point*Img:'%s' type:'%s' id:%d x:%d y:%d veh_x:%2.4f veh_y:%2.4f world_x:%2.4f world_y:%2.4f#" \
+                    % (str(self.img_id), self.type, self.id, self.x, self.y, 
+                       self.veh_x, self.veh_y, self.world_x, self.world_y)
+        else:
+            log = "**Point*Img:'%s' type:'%s' id:%d x:%d y:%d veh_x:%2.4f veh_y:%2.4f#" \
+                    % (str(self.img_id), self.type, self.id, self.x, self.y, self.veh_x, self.veh_y)
+            
+        return log
+
 
 if __name__=="__main__":
     pass
