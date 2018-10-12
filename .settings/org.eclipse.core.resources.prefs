@@ -3,6 +3,7 @@ encoding//src/gui/cmd_win.py=UTF-8
 encoding//src/gui/ctrl_plam.py=UTF-8
 encoding//src/landmark/bev_points_marker.py=UTF-8
 encoding//src/landmark/points_marker.py=UTF-8
+encoding//src/landmark/veh_pose_marker.py=UTF-8
 encoding//src/main.py=UTF-8
 encoding//src/utils/comm_struct.py=UTF-8
 encoding//src/utils/config_parser.py=UTF-8

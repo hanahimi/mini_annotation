@@ -70,12 +70,13 @@ class BevPointsMarker(PointsMarker):
                 if self.loc_data:
                     cur_time = int(new_point.img_id)
                     try:
+                        print(cur_time)
                         bev_pose = self.loc_data[cur_time]
-                        cosa = cos(bev_pose.yawr)
-                        sina = sin(bev_pose.yawr)
-                        new_point.world_x = new_point.veh_y * cosa + new_point.veh_x * sina + bev_pose.x
-                        new_point.world_Y = new_point.veh_x * cosa - new_point.veh_y * sina + bev_pose.y
-                        print("  X:%2.4f Y:%2.4f time:%09d" % (cur_time, new_point.world_x, new_point.world_y))
+                        cosa = cos(bev_pose.Yawr)
+                        sina = sin(bev_pose.Yawr)
+                        new_point.world_x = new_point.veh_y * cosa + new_point.veh_x * sina + bev_pose.Xm
+                        new_point.world_y = new_point.veh_x * cosa - new_point.veh_y * sina + bev_pose.Ym
+                        print("  time:%09d X:%2.4f Y:%2.4f" % (cur_time, new_point.world_x, new_point.world_y))
                     except:
                         print("can not fine match pose data of time:%09d" % (cur_time))
                         
@@ -141,9 +142,10 @@ class BevPointsMarker(PointsMarker):
     
 def main():
     pass
-    imgs_dir = r"D:\bev"
-    bev_config = {"vc_img_x":256, "vc_img_y":312, "ppmmx":20, "ppmmy":20}
-    pm = BevPointsMarker(imgs_dir, bev_config)
+    imgs_dir = r"D:\bev_512_WH\landmarks\20180717_203642_2\bev"
+    veh_loc_file = r"D:\bev_512_WH\landmarks\20180717_203642_2\can_ekf.txt"
+    bev_config = {"vc_img_x":256, "vc_img_y":320, "ppmmx":20, "ppmmy":20}
+    pm = BevPointsMarker(imgs_dir, bev_config, veh_loc_file)
     pm.mainloop()
     
 if __name__=="__main__":
