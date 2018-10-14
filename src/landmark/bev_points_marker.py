@@ -13,6 +13,8 @@ D: load next image
 R: remove current annotation
 F: save current annotation
 1~9: select loading step
+M: merge all landmark text into one text file: "landmarks.txt"
+I: display landmark in matplot
 
 # mouse event:
 1 click mouse-1 on left image: add new point annotation
@@ -28,6 +30,8 @@ from utils.cv_marker import CvMarker
 from utils.log_parser import get_log_table
 from landmark.points_marker import PointsMarker
 from math import cos, sin
+from utils.dataio import get_walkfilelist
+import os
 
 class BevPointsMarker(PointsMarker):
     def __init__(self, imgs_dir, bev_config, veh_loc_file=None):
@@ -128,6 +132,63 @@ class BevPointsMarker(PointsMarker):
         except:
             pass
     
+    
+    def  __merge_landmarks(self, imgs_dir):
+        label_lst, _ = get_walkfilelist(imgs_dir, ".txt")
+        load_points = []
+        for i in range(len(label_lst)):
+            try:
+                label_data = get_log_table(label_lst[i])
+                for k in range(len(label_data)):
+                    if "Point" == label_data[k].name:
+                        new_point = BevPointData()
+                        new_point.load_table(label_data[k].table)
+                        load_points.append(new_point)
+            except:
+                pass
+        if load_points:
+            print("%d landmarks found" % len(load_points))
+            landmark_file = os.path.join(os.path.split(imgs_dir)[0],"landmarks.txt")
+            with open(landmark_file,"w") as f:
+                for lp in load_points:
+                    f.write(str(lp)+"\n")
+    
+    def display_landmarks(self, imgs_dir):
+        try:
+            from matplotlib import pyplot as plt
+            font = {'size'   : 8}
+            landmark_file = os.path.join(os.path.split(imgs_dir)[0],"landmarks.txt")
+            landmarks = get_log_table(landmark_file)
+            plt.figure()
+            X,Y = [],[]
+            for i in range(len(landmarks)):
+                lm_data = landmarks[i].table
+                s = lm_data["type"]+"_"+str(lm_data["id"])
+                x = lm_data["world_x"]
+                y = lm_data["world_y"]
+                X.append(x)
+                Y.append(y)
+                plt.text(x, y, s, fontdict=font)
+            plt.plot(X, Y, ".")
+            plt.show()
+        
+        except:
+            pass
+        
+    def keyboard_respond(self, key):
+        res = PointsMarker.keyboard_respond(self, key)
+        
+        if key==ord('m') or key==ord('M'):
+            print("Merge Landmarks annotations")
+            self.__merge_landmarks(self.imgs_dir)
+        
+        if key==ord('i') or key==ord('I'):
+            print("Display Landmarks")
+            self.display_landmarks(self.imgs_dir)
+            
+        return res
+        
+    
     def mainloop(self):
         while (1):
             CvMarker.draw_cross(self.cur_img, self.bev_config["vc_img_x"], self.bev_config["vc_img_y"])
@@ -142,8 +203,8 @@ class BevPointsMarker(PointsMarker):
     
 def main():
     pass
-    imgs_dir = r"D:\bev_512_WH\landmarks\20180717_203642_2\bev"
-    veh_loc_file = r"D:\bev_512_WH\landmarks\20180717_203642_2\can_ekf.txt"
+    imgs_dir = r"D:\VPS_GT\bev_512_WH\landmarks\20180717_203642_2\bev"
+    veh_loc_file = r"D:\VPS_GT\bev_512_WH\landmarks\20180717_203642_2\can_ekf.txt"
     bev_config = {"vc_img_x":256, "vc_img_y":320, "ppmmx":20, "ppmmy":20}
     pm = BevPointsMarker(imgs_dir, bev_config, veh_loc_file)
     pm.mainloop()

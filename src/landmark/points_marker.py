@@ -34,7 +34,7 @@ from utils.log_parser import get_log_table
 class PointsMarker:
     def __init__(self, imgs_dir):
         self.win_title = "points_marker"
-        self.root_dir = imgs_dir
+        self.imgs_dir = imgs_dir
         
         self.cur_img_idx = 0
         self.type_str = "X"

@@ -17,6 +17,13 @@ class PointData:
         self.id = 0
         self.img_id = "0"
         self.type = "unknow"
+
+    def load_table(self, table):
+        self.img_id = table["Img"]
+        self.type = table["type"]
+        self.id = table["id"]
+        self.x = table["x"]
+        self.y = table["y"]
         
     def __repr__(self):
         log = "**Point*Img:'%s' type:'%s' id:%d x:%d y:%d#" % (str(self.img_id), self.type, self.id, self.x, self.y)
@@ -30,6 +37,14 @@ class BevPointData(PointData):
         
         self.world_x = None
         self.world_y = None
+    
+    def load_table(self, table):
+        PointData.load_table(self, table)
+        self.veh_x = table["veh_x"]
+        self.veh_y = table["veh_y"]
+        if "world_x" in table and "world_y" in table:
+            self.world_x = table["world_x"]
+            self.world_y = table["world_y"]
     
     def __repr__(self):
         if self.world_x or self.world_y:
