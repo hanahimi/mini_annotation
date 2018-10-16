@@ -195,7 +195,7 @@ class VehPoseMarker(PointsMarker):
             
 def main():
     pass
-    imgs_dir = r"D:\VPS_GT\bev_512_WH\test_raw_data\20180717_210944\bev"
+    imgs_dir = r"D:\VPS_GT\bev_512_WH\test_raw_data\20180717_231042\bev"
     landmark_file = r"D:\VPS_GT\bev_512_WH\landmarks\20180717_203642_2\landmarks.txt"
     bev_config = {"vc_img_x":256, "vc_img_y":320, "ppmmx":20, "ppmmy":20}
     pm = VehPoseMarker(imgs_dir, bev_config, landmark_file)
